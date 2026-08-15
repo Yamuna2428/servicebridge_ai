@@ -1,0 +1,99 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profile rules
+    match /users/{userId} {
+      // 1. A user must be authenticated to access profiles.
+      // 2. A user can read their own profile.
+      // 3. Customers can read Worker profiles for discovery.
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        resource.data.userType == 'Worker'
+      );
+
+      // 4. A user can create their own profile.
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // 5. A user can update their own profile.
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // 6. A user must NOT be able to delete another user's profile.
+      allow delete: if false;
+    }
+
+    // Review rules
+    match /reviews/{reviewId} {
+      // 1. Only authenticated users can read reviews.
+      allow read: if request.auth != null;
+
+      // 2. Only authenticated users can create reviews.
+      // 3. customerId must match auth.uid.
+      // 4. workerId must not match auth.uid (no self-review).
+      // 5. rating between 1 and 5.
+      allow create: if request.auth != null &&
+                    request.resource.data.customerId == request.auth.uid &&
+                    request.resource.data.workerId != request.auth.uid &&
+                    request.resource.data.rating >= 1 &&
+                    request.resource.data.rating <= 5;
+
+      // 7. Only original author can update their review.
+      allow update: if request.auth != null &&
+                    resource.data.customerId == request.auth.uid &&
+                    request.resource.data.customerId == request.auth.uid;
+
+      // 8. Deletion disabled.
+      allow delete: if false;
+    }
+
+    // Service request rules
+    match /service_requests/{requestId} {
+      // 1. Only authenticated parties can read their requests.
+      allow read: if request.auth != null && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.workerId == request.auth.uid
+      );
+
+      // 2. Only Customers can create Pending requests.
+      allow create: if request.auth != null &&
+        request.resource.data.customerId == request.auth.uid &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'Customer' &&
+        request.resource.data.status == 'Pending';
+
+      // 3. Strict status transitions and field immutability.
+      allow update: if request.auth != null && (
+        (
+          // Customer update: Only Cancellation from Pending or Accepted
+          resource.data.customerId == request.auth.uid &&
+          request.resource.data.status == 'Cancelled' &&
+          (resource.data.status == 'Pending' || resource.data.status == 'Accepted')
+        ) ||
+        (
+          // Worker update: Pending -> Accepted/Rejected, Accepted -> Completed
+          resource.data.workerId == request.auth.uid &&
+          (
+            (resource.data.status == 'Pending' && (request.resource.data.status == 'Accepted' || request.resource.data.status == 'Rejected')) ||
+            (resource.data.status == 'Accepted' && request.resource.data.status == 'Completed')
+          )
+        )
+      ) &&
+      // Ensure immutable fields are not changed
+      request.resource.data.requestId == resource.data.requestId &&
+      request.resource.data.customerId == resource.data.customerId &&
+      request.resource.data.workerId == resource.data.workerId &&
+      request.resource.data.serviceCategory == resource.data.serviceCategory &&
+      request.resource.data.description == resource.data.description &&
+      request.resource.data.preferredDateTime == resource.data.preferredDateTime &&
+      request.resource.data.location == resource.data.location &&
+      request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if false;
+    }
+
+    // Default: Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

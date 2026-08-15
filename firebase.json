@@ -1,0 +1,24 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "servicebridge-ai-a696c",
+          "appId": "1:1037759231918:android:3cea6012fbe03bf4caba3f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "servicebridge-ai-a696c",
+          "configurations": {
+            "android": "1:1037759231918:android:3cea6012fbe03bf4caba3f"
+          }
+        }
+      }
+    }
+  }
+}

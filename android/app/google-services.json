@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1037759231918",
+    "project_id": "servicebridge-ai-a696c",
+    "storage_bucket": "servicebridge-ai-a696c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1037759231918:android:3cea6012fbe03bf4caba3f",
+        "android_client_info": {
+          "package_name": "com.yamuna.servicebridge_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNdqgqBi_JBn6cLB8vjkpHln5SUzZXEM0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
